@@ -1,0 +1,31 @@
+/* Universal reset and page layout */
+body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #121212; /* Dark theme */
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Container styling for the music section */
+.embed-container {
+    width: 100%;
+    max-width: 360px; /* Constrains layout to a mobile/sidebar width */
+    padding: 20px;
+    background: #181818;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Base styling for the embedded element */
+.embed-container iframe {
+    display: block;
+    width: 100%;
+    border: none;
+    border-radius: 12px;
+}

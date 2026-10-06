@@ -1,3 +1,3 @@
-# test
+# music
 
-GitHub Pages: https://andrewgrip.github.io/test/
+GitHub Pages: https://andrewgrip.github.io/music/

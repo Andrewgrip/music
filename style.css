@@ -14,8 +14,9 @@ body {
 
 /* Container styling for the music section */
 .embed-container {
-    width: 100%;
-    max-width: 360px; /* Constrains layout to a mobile/sidebar width */
+    box-sizing: border-box;
+    width: 94vw;
+    max-width: 900px; /* Large player on desktop, full width on mobile */
     padding: 20px;
     background: #181818;
     border-radius: 16px;
@@ -26,6 +27,8 @@ body {
 .embed-container iframe {
     display: block;
     width: 100%;
+    height: calc(100vh - 100px); /* Fill most of the screen height */
+    min-height: 380px;
     border: none;
     border-radius: 12px;
 }

@@ -1,163 +1,263 @@
-/* Full-window layout */
-* { box-sizing: border-box; }
-
-html, body {
-    height: 100%;
-    margin: 0;
+/* ===== Music — σκούρο θέμα σαν την εφαρμογή Spotify ===== */
+:root {
+    --bg: #000000;
+    --panel: #121212;
+    --panel-2: #1a1a1a;
+    --hover: #232323;
+    --line: #2a2a2a;
+    --text: #ffffff;
+    --sub: #b3b3b3;
+    --green: #1db954;
+    --green-hi: #1ed760;
+    --radius: 10px;
 }
 
+* { box-sizing: border-box; }
+
+html, body { height: 100%; margin: 0; }
+
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: #121212; /* Dark theme */
-    color: #ffffff;
+    font-family: "Circular", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
     display: flex;
     flex-direction: column;
     height: 100vh;
     height: 100dvh;
-    padding: 12px;
-    gap: 12px;
-}
-
-/* Search bar */
-.search-bar {
-    position: relative;
-    display: flex;
+    padding: 8px;
     gap: 8px;
-    flex-wrap: wrap;
+    overflow: hidden;
 }
 
-.search-bar input {
-    flex: 1 1 220px;
-    min-width: 0;
-    padding: 12px 16px;
+button { font: inherit; color: inherit; }
+
+/* ---------- Header ---------- */
+.topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: var(--panel);
+    border-radius: var(--radius);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+}
+
+.logo .dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--green);
+    color: #000;
+    display: grid;
+    place-items: center;
     font-size: 16px;
-    color: #fff;
-    background: #242424;
-    border: 1px solid #3a3a3a;
-    border-radius: 999px;
-    outline: none;
 }
 
-.search-bar input:focus { border-color: #1db954; }
-
-.search-bar button {
-    padding: 12px 18px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #fff;
-    background: #2a2a2a;
-    border: 1px solid #3a3a3a;
+.search {
+    flex: 1;
+    max-width: 520px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--panel-2);
+    border: 1px solid transparent;
     border-radius: 999px;
+    padding: 0 6px 0 16px;
+}
+
+.search:focus-within { border-color: var(--text); background: var(--hover); }
+
+.search svg { flex-shrink: 0; fill: var(--sub); }
+
+.search input {
+    flex: 1;
+    min-width: 0;
+    height: 44px;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--text);
+    font-size: 15px;
+}
+
+.search input::-webkit-search-cancel-button { filter: invert(1); }
+
+.pill {
+    height: 34px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--text);
+    color: #000;
+    font-size: 13px;
+    font-weight: 700;
     cursor: pointer;
     white-space: nowrap;
 }
 
-.search-bar button:hover { background: #333; }
-.search-bar button.primary { background: #1db954; border-color: #1db954; color: #000; }
-.search-bar button.primary:hover { background: #1ed760; }
+.pill:hover { transform: scale(1.03); }
 
-/* Results dropdown */
-.results {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    right: 0;
-    max-height: 60vh;
+/* ---------- Main layout ---------- */
+.layout {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(300px, 420px) 1fr;
+    gap: 8px;
+}
+
+.panel {
+    background: var(--panel);
+    border-radius: var(--radius);
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ---------- Library / track list ---------- */
+.library-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 16px 16px 8px;
+}
+
+.library-head h2 { margin: 0; font-size: 17px; }
+
+.library-head .count { color: var(--sub); font-size: 13px; }
+
+.tracks {
+    flex: 1;
     overflow-y: auto;
-    background: #1e1e1e;
-    border: 1px solid #333;
-    border-radius: 12px;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
-    z-index: 10;
-    display: none;
+    padding: 0 8px 8px;
+    scrollbar-width: thin;
+    scrollbar-color: #444 transparent;
 }
 
-.results.open { display: block; }
-
-.results button {
-    display: block;
+.track {
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    align-items: center;
+    gap: 8px;
     width: 100%;
+    padding: 8px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
     text-align: left;
-    padding: 10px 16px;
-    background: none;
-    border: none;
-    border-bottom: 1px solid #2a2a2a;
-    color: #fff;
     cursor: pointer;
-    font-size: 15px;
 }
 
-.results button {
+.track:hover, .track.kb { background: var(--hover); }
+
+.track .num { color: var(--sub); font-size: 14px; text-align: right; font-variant-numeric: tabular-nums; }
+
+.track .title {
+    display: block;
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.track .artist {
+    display: block;
+    margin-top: 2px;
+    font-size: 13px;
+    color: var(--sub);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.track.playing .title, .track.playing .num { color: var(--green); }
+
+.empty {
+    padding: 24px 16px;
+    color: var(--sub);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* ---------- Player ---------- */
+.player-panel { padding: 16px; gap: 12px; }
+
+.controls {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
-.results img {
-    width: 40px;
-    height: 40px;
-    border-radius: 4px;
-    object-fit: cover;
-    flex-shrink: 0;
+.now {
+    flex: 1;
+    min-width: 0;
+    color: var(--sub);
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.results .section {
-    padding: 10px 16px 6px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: #1db954;
-    background: #181818;
-    position: sticky;
-    top: 0;
+.now b { color: var(--text); font-weight: 600; }
+
+.ctrl {
+    height: 36px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid #535353;
+    border-radius: 999px;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
 }
 
-.results button:hover,
-.results button.active { background: #2c2c2c; }
-.results .artist { display: block; font-size: 13px; color: #b3b3b3; margin-top: 2px; }
-.results .empty { padding: 12px 16px; color: #b3b3b3; font-size: 14px; }
+.ctrl:hover { border-color: var(--text); }
 
-/* Player fills the rest of the window */
+.ctrl.on { border-color: var(--green); color: var(--green); }
+
+.ctrl.play { background: var(--green); border-color: var(--green); color: #000; }
+.ctrl.play:hover { background: var(--green-hi); }
+
 .embed-container {
     flex: 1;
     min-height: 0;
     border-radius: 12px;
     overflow: hidden;
-    background: #181818;
+    background: var(--panel-2);
 }
 
 .embed-container iframe {
     display: block;
     width: 100%;
     height: 100%;
-    border: none;
+    border: 0;
 }
 
-/* Playlist buttons */
-.tabs {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
+/* ---------- Mobile ---------- */
+@media (max-width: 800px) {
+    body { overflow: auto; height: auto; min-height: 100dvh; }
+    .topbar { flex-wrap: wrap; }
+    .search { order: 3; flex-basis: 100%; max-width: none; }
+    .pill { margin-left: auto; }
+    .now { flex-basis: 100%; }
+    .layout { grid-template-columns: 1fr; display: flex; flex-direction: column; }
+    .player-panel { order: -1; }
+    .embed-container { flex: none; height: 380px; }
+    .panel.library { max-height: 70vh; }
 }
-
-.tabs button {
-    flex-shrink: 0;
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #fff;
-    background: #2a2a2a;
-    border: 1px solid #3a3a3a;
-    border-radius: 999px;
-    cursor: pointer;
-}
-
-.tabs button:hover { background: #333; }
-.tabs button.active { background: #fff; color: #000; border-color: #fff; }
-
-.results .in { color: #1db954; }
-
-/* Repeat button when active */
-.search-bar button.on { border-color: #1db954; color: #1db954; }

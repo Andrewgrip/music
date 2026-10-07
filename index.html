@@ -7,95 +7,115 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="search-bar">
-    <input id="q" type="search" placeholder="Αναζήτηση τραγουδιού ή καλλιτέχνη..." autocomplete="off">
-    <button id="spotifySearch" class="primary" type="button">Αναζήτηση στο Spotify</button>
-    <button id="repeat" type="button">🔁 Επανάληψη: Όλη η λίστα</button>
-    <div id="results" class="results"></div>
-  </div>
+  <header class="topbar">
+    <div class="logo"><span class="dot">♫</span>Music</div>
+    <label class="search">
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 0 1 5.92 12.1l4.24 4.24-1.42 1.42-4.24-4.24A7.5 7.5 0 1 1 10.5 3zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11z"/></svg>
+      <input id="q" type="search" placeholder="Τι θέλεις να ακούσεις;" autocomplete="off">
+    </label>
+    <button id="spotifySearch" class="pill" type="button">Ψάξε στο Spotify</button>
+  </header>
 
-  <div class="embed-container">
-    <div id="player"></div>
-  </div>
+  <main class="layout">
+    <section class="panel library">
+      <div class="library-head">
+        <h2 id="listTitle">Όλα τα τραγούδια</h2>
+        <span id="count" class="count"></span>
+      </div>
+      <div id="tracks" class="tracks"><div class="empty">Φόρτωση...</div></div>
+    </section>
+
+    <section class="panel player-panel">
+      <div class="controls">
+        <div id="now" class="now">Παίζει: <b>όλη η λίστα</b></div>
+        <button id="playAll" class="ctrl play" type="button">▶ Όλη η λίστα</button>
+        <button id="repeat" class="ctrl" type="button">🔁 Επανάληψη λίστας</button>
+      </div>
+      <div class="embed-container">
+        <div id="player"></div>
+      </div>
+    </section>
+  </main>
 
   <script>
-    // Οι playlists και τα τραγούδια τους φορτώνονται από το tracks.json
-    // Μορφή: { playlists: [{id, name}], tracks: [[trackId, τίτλος, καλλιτέχνες, [δείκτες playlists]]] }
-    const MAX_RESULTS = 50;
+    const MAIN_URI = "spotify:playlist:4NTuH5mnRYIe4Yv4YmN6Lg"; // Music 10K
+    const MAX_SHOWN = 300;   // πόσα τραγούδια δείχνει η λίστα κάθε φορά
 
-    let PLAYLISTS = [];
     let TRACKS = [];
     let controller = null;
-    let active = -1;
+    let current = { uri: MAIN_URI, title: null };
 
-    const q = document.getElementById("q");
-    const results = document.getElementById("results");
-
+    const $ = id => document.getElementById(id);
+    const q = $("q"), list = $("tracks"), nowEl = $("now");
     const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-    const escapeHtml = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-    const MAIN_URI = "spotify:playlist:4NTuH5mnRYIe4Yv4YmN6Lg"; // Music 10K
+    /* ---------- Λίστα τραγουδιών + αναζήτηση ---------- */
+    let shown = [];
+    let kb = -1;
 
-    // Επανάληψη: "all" = όταν τελειώσει η λίστα ξεκινά από την αρχή,
-    //            "one" = το τραγούδι που παίζει ξαναπαίζει από την αρχή
-    let repeatMode = "all";
-    try { if (localStorage.getItem("repeatMode") === "one") repeatMode = "one"; } catch (e) {}
-    const repeatBtn = document.getElementById("repeat");
-    function updateRepeat() {
-      repeatBtn.textContent = repeatMode === "one" ? "🔂 Επανάληψη: Αυτό το τραγούδι" : "🔁 Επανάληψη: Όλη η λίστα";
-      repeatBtn.classList.toggle("on", repeatMode === "one");
+    function renderList() {
+      const term = norm(q.value.trim());
+      const words = term ? term.split(/\s+/) : [];
+      shown = words.length ? TRACKS.filter(t => words.every(w => t.search.includes(w))) : TRACKS;
+      $("listTitle").textContent = words.length ? "Αποτελέσματα" : "Όλα τα τραγούδια";
+      $("count").textContent = shown.length.toLocaleString("el-GR") + " τραγούδια";
+      kb = -1;
+      if (!shown.length) {
+        list.innerHTML = '<div class="empty">Δεν βρέθηκε στη λίστα σου.<br>Πάτα «Ψάξε στο Spotify» για να το βρεις εκεί.</div>';
+        return;
+      }
+      const playingId = current.uri.startsWith("spotify:track:") ? current.uri.slice(14) : null;
+      list.innerHTML = shown.slice(0, MAX_SHOWN).map((t, i) =>
+        '<button class="track' + (t.id === playingId ? " playing" : "") + '" type="button" data-id="' + t.id + '">' +
+        '<span class="num">' + (i + 1) + '</span><span><span class="title">' + esc(t.title) +
+        '</span><span class="artist">' + esc(t.artists) + "</span></span></button>").join("") +
+        (shown.length > MAX_SHOWN ? '<div class="empty">… και άλλα ' + (shown.length - MAX_SHOWN).toLocaleString("el-GR") + '. Γράψε κάτι στην αναζήτηση για να τα βρεις.</div>' : "");
+      list.scrollTop = 0;
     }
-    updateRepeat();
-    repeatBtn.addEventListener("click", () => {
-      repeatMode = repeatMode === "one" ? "all" : "one";
-      try { localStorage.setItem("repeatMode", repeatMode); } catch (e) {}
-      updateRepeat();
+
+    q.addEventListener("input", renderList);
+    q.addEventListener("keydown", e => {
+      const items = [...list.querySelectorAll(".track")];
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        if (!items.length) return;
+        e.preventDefault();
+        kb = (kb + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+        items.forEach((b, i) => b.classList.toggle("kb", i === kb));
+        items[kb].scrollIntoView({ block: "nearest" });
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        const target = items[kb >= 0 ? kb : 0];
+        if (target) playTrack(target.dataset.id);
+        else $("spotifySearch").click();
+      } else if (e.key === "Escape") {
+        q.value = ""; renderList();
+      }
     });
 
-    let currentUri = MAIN_URI;
-    let wasPlaying = false;
-    let restarting = false;
-    let seekedBack = false;
-    let lastPos = 0, lastDur = 0;
+    list.addEventListener("click", e => {
+      const b = e.target.closest(".track");
+      if (b) playTrack(b.dataset.id);
+    });
 
-    function onPlayback(e) {
-      const d = e.data || {};
-      const pos = d.position || 0, dur = d.duration || 0;
+    $("spotifySearch").addEventListener("click", () => {
+      const term = q.value.trim();
+      window.open("https://open.spotify.com/search" + (term ? "/" + encodeURIComponent(term) : ""), "_blank", "noopener");
+    });
 
-      // Ένα τραγούδι: λίγο πριν τελειώσει, γύρνα στην αρχή του
-      if (repeatMode === "one" && !d.isPaused && dur > 0) {
-        if (!seekedBack && dur - pos < 1500) {
-          seekedBack = true;
-          controller.seek(0);
-        } else if (pos < 5000) {
-          seekedBack = false;
-        }
-      }
-
-      // Όλη η λίστα (ή ένα τραγούδι αν ο player πρόλαβε να σταματήσει):
-      // όταν σταματήσει στο τέλος, ξεκίνα ξανά
-      const atEnd = dur > 0 && pos >= dur - 1500;
-      const wasNearEnd = lastDur > 0 && lastPos >= lastDur - 2500;
-      const ended = wasPlaying && d.isPaused && !d.isBuffering && (atEnd || (pos === 0 && wasNearEnd));
-      if (!d.isPaused) wasPlaying = true;
-      lastPos = pos;
-      lastDur = dur;
-      if (!ended || restarting) return;
-      wasPlaying = false;
-      restarting = true;
-      if (repeatMode === "one") {
-        controller.seek(0);
-        setTimeout(() => { controller.resume(); restarting = false; }, 500);
-      } else {
-        currentUri = MAIN_URI;
-        controller.loadUri(MAIN_URI);
-        setTimeout(() => { controller.play(); restarting = false; }, 800);
-      }
+    /* ---------- Αναπαραγωγή ---------- */
+    function setNow() {
+      nowEl.innerHTML = current.title
+        ? "Παίζει: <b>" + esc(current.title) + "</b>"
+        : "Παίζει: <b>όλη η λίστα</b>";
+      list.querySelectorAll(".track").forEach(b =>
+        b.classList.toggle("playing", "spotify:track:" + b.dataset.id === current.uri));
     }
 
-    function load(uri) {
-      currentUri = uri;
-      wasPlaying = false;
+    function load(uri, title) {
+      current = { uri, title: title || null };
+      resetEnd();
+      setNow();
       if (controller) {
         controller.loadUri(uri);
         controller.play();
@@ -106,91 +126,102 @@
       }
     }
 
-    function render() {
-      const term = norm(q.value.trim());
-      active = -1;
-      if (!term) { results.classList.remove("open"); results.innerHTML = ""; return; }
-      const words = term.split(/\s+/);
-      const found = [];
-      for (const t of TRACKS) {
-        if (words.every(w => t.search.includes(w))) {
-          found.push(t);
-          if (found.length >= MAX_RESULTS) break;
+    function playTrack(id) {
+      const t = TRACKS.find(x => x.id === id);
+      load("spotify:track:" + id, t ? t.title + " — " + t.artists : null);
+    }
+
+    $("playAll").addEventListener("click", () => load(MAIN_URI, null));
+
+    /* ---------- Επανάληψη ----------
+       "all": όταν τελειώσει η λίστα (ή το τραγούδι που διάλεξες), ξεκινά πάλι η λίστα από την αρχή
+       "one": το τραγούδι που ακούς ξαναπαίζει από την αρχή όταν τελειώσει            */
+    let repeatMode = "all";
+    try { if (localStorage.getItem("repeatMode") === "one") repeatMode = "one"; } catch (e) {}
+    const repeatBtn = $("repeat");
+    function updateRepeat() {
+      repeatBtn.textContent = repeatMode === "one" ? "🔂 Επανάληψη τραγουδιού" : "🔁 Επανάληψη λίστας";
+      repeatBtn.classList.toggle("on", true);
+      repeatBtn.title = repeatMode === "one"
+        ? "Το τραγούδι ξαναπαίζει από την αρχή. Πάτα για επανάληψη όλης της λίστας."
+        : "Η λίστα ξεκινά πάλι όταν τελειώσει. Πάτα για επανάληψη ενός τραγουδιού.";
+    }
+    updateRepeat();
+    repeatBtn.addEventListener("click", () => {
+      repeatMode = repeatMode === "one" ? "all" : "one";
+      try { localStorage.setItem("repeatMode", repeatMode); } catch (e) {}
+      updateRepeat();
+    });
+
+    let last = { pos: 0, dur: 0 }, wasPlaying = false, busy = false, seekedBack = false;
+    function resetEnd() { last = { pos: 0, dur: 0 }; wasPlaying = false; seekedBack = false; }
+
+    function onPlayback(e) {
+      const d = e.data || {};
+      const pos = d.position || 0, dur = d.duration || 0;
+      if (busy) return;
+
+      // Επανάληψη τραγουδιού: λίγο πριν τελειώσει, πήγαινε στην αρχή (χωρίς διακοπή)
+      if (repeatMode === "one" && !d.isPaused && dur > 0) {
+        if (!seekedBack && dur - pos < 1200) {
+          seekedBack = true;
+          controller.seek(0);
+        } else if (pos < 3000) {
+          seekedBack = false;
         }
       }
-      results.innerHTML = found.length
-        ? found.map(t =>
-            '<button type="button" data-id="' + t.id + '"><span class="text">' + escapeHtml(t.title) +
-            '<span class="artist">' + escapeHtml(t.artists) +
-            "</span></span></button>").join("")
-        : '<div class="empty">Δεν βρέθηκε. Πατήστε «Αναζήτηση στο Spotify».</div>';
-      results.classList.add("open");
-    }
 
-    function pick(id) {
-      load("spotify:track:" + id);
-      results.classList.remove("open");
-    }
+      // Τέλος αναπαραγωγής: σταμάτησε στο τέλος ή γύρισε στο 0 αμέσως μετά το τέλος
+      const nearEndBefore = last.dur > 0 && last.pos >= last.dur - 2500;
+      const ended = wasPlaying && d.isPaused && !d.isBuffering &&
+        ((dur > 0 && pos >= dur - 1200) || (pos === 0 && nearEndBefore));
+      if (!d.isPaused) wasPlaying = true;
+      last = { pos, dur };
+      if (!ended) return;
 
-    q.addEventListener("input", render);
-    q.addEventListener("focus", render);
-
-    q.addEventListener("keydown", e => {
-      const items = [...results.querySelectorAll("button")];
-      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-        if (!items.length) return;
-        e.preventDefault();
-        active = (active + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
-        items.forEach((b, i) => b.classList.toggle("active", i === active));
-        items[active].scrollIntoView({ block: "nearest" });
-      } else if (e.key === "Enter") {
-        e.preventDefault();
-        const target = items[active >= 0 ? active : 0];
-        if (target) pick(target.dataset.id);
-        else document.getElementById("spotifySearch").click();
-      } else if (e.key === "Escape") {
-        results.classList.remove("open");
+      busy = true;
+      wasPlaying = false;
+      if (repeatMode === "one") {
+        // Το ίδιο τραγούδι από την αρχή, χωρίς να ξαναφορτώσει ο player
+        controller.seek(0);
+        setTimeout(() => { controller.resume(); busy = false; }, 400);
+      } else if (current.uri === MAIN_URI) {
+        // Τέλος λίστας: συνέχισε (ο player γυρίζει στο 1ο τραγούδι)·
+        // αν δεν ξεκινήσει σε 3", ξαναφόρτωσε τη λίστα από την αρχή
+        controller.resume();
+        setTimeout(() => {
+          busy = false;
+          if (!wasPlaying) load(MAIN_URI, null);
+        }, 3000);
+      } else {
+        // Τελείωσε ένα τραγούδι που διάλεξες → συνέχισε με όλη τη λίστα
+        load(MAIN_URI, null);
+        setTimeout(() => { busy = false; }, 1500);
       }
-    });
+    }
 
-    results.addEventListener("click", e => {
-      const b = e.target.closest("button");
-      if (b) pick(b.dataset.id);
-    });
-
-    document.addEventListener("click", e => {
-      if (!e.target.closest(".search-bar")) results.classList.remove("open");
-    });
-
-    document.getElementById("spotifySearch").addEventListener("click", () => {
-      const term = q.value.trim();
-      window.open("https://open.spotify.com/search" + (term ? "/" + encodeURIComponent(term) : ""), "_blank", "noopener");
-    });
-
-    // Φόρτωση δεδομένων
+    /* ---------- Φόρτωση ---------- */
     fetch("tracks.json")
       .then(r => r.json())
       .then(data => {
-        PLAYLISTS = data.playlists;
-        TRACKS = data.tracks.map(([id, title, artists, lists]) =>
-          ({ id, title, artists, lists, search: norm(title + " " + artists) }));
-        q.placeholder = "Αναζήτηση σε " + TRACKS.length.toLocaleString("el-GR") + " τραγούδια...";
+        TRACKS = data.tracks.map(([id, title, artists]) =>
+          ({ id, title, artists, search: norm(title + " " + artists) }));
+        q.placeholder = "Αναζήτηση σε " + TRACKS.length.toLocaleString("el-GR") + " τραγούδια";
+        renderList();
       })
-      .catch(() => { q.placeholder = "Η λίστα αναζήτησης δεν φόρτωσε"; });
+      .catch(() => { list.innerHTML = '<div class="empty">Η λίστα δεν φόρτωσε. Ανανέωσε τη σελίδα.</div>'; });
 
-    // Spotify iFrame API
     window.onSpotifyIframeApiReady = IFrameAPI => {
       IFrameAPI.createController(
-        document.getElementById("player"),
+        $("player"),
         { uri: MAIN_URI, width: "100%", height: "100%" },
         c => { controller = c; c.addListener("playback_update", onPlayback); }
       );
     };
 
-    // Αν δεν φορτώσει το API, απλό iframe
     setTimeout(() => {
       if (!controller && !document.querySelector(".embed-container iframe")) {
-        document.getElementById("player").outerHTML =
+        $("player").outerHTML =
           '<iframe src="https://open.spotify.com/embed/playlist/4NTuH5mnRYIe4Yv4YmN6Lg" ' +
           'allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" ' +
           'allowfullscreen loading="lazy"></iframe>';

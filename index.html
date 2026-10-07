@@ -172,9 +172,9 @@
       }
 
       // Τέλος αναπαραγωγής: σταμάτησε στο τέλος ή γύρισε στο 0 αμέσως μετά το τέλος
-      const nearEndBefore = last.dur > 0 && last.pos >= last.dur - 2500;
+      const nearEndBefore = last.dur > 0 && last.pos >= last.dur - 6000;
       const ended = wasPlaying && d.isPaused && !d.isBuffering &&
-        ((dur > 0 && pos >= dur - 1200) || (pos === 0 && nearEndBefore));
+        ((dur > 0 && pos >= dur - 6000) || (pos === 0 && nearEndBefore));
       if (!d.isPaused) wasPlaying = true;
       last = { pos, dur };
       if (!ended) return;
@@ -183,12 +183,12 @@
       wasPlaying = false;
       if (repeatMode === "one") {
         // Το ίδιο τραγούδι από την αρχή, χωρίς να ξαναφορτώσει ο player
-        controller.seek(0);
-        setTimeout(() => { controller.resume(); busy = false; }, 400);
+        if (current.uri === MAIN_URI) { controller.seek(0); setTimeout(() => controller.resume(), 300); }
+        else controller.play();               // play() ξεκινά το τραγούδι από την αρχή
+        setTimeout(() => { busy = false; }, 1500);
       } else if (current.uri === MAIN_URI) {
-        // Τέλος λίστας: συνέχισε (ο player γυρίζει στο 1ο τραγούδι)·
-        // αν δεν ξεκινήσει σε 3", ξαναφόρτωσε τη λίστα από την αρχή
-        controller.resume();
+        // Τέλος λίστας: ξεκίνα πάλι από την αρχή
+        controller.play();
         setTimeout(() => {
           busy = false;
           if (!wasPlaying) load(MAIN_URI, null);

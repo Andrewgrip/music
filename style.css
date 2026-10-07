@@ -158,3 +158,6 @@ body {
 .tabs button.active { background: #fff; color: #000; border-color: #fff; }
 
 .results .in { color: #1db954; }
+
+/* Repeat button when active */
+.search-bar button.on { border-color: #1db954; color: #1db954; }

@@ -102,14 +102,31 @@
     const recall = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 
     /* ---------- Εξώφυλλα (oEmbed του Spotify) ---------- */
+    // ζητάμε τα εξώφυλλα ένα-ένα (όχι όλα μαζί, για να μη μας μπλοκάρει το Spotify)
+    // και τα κρατάμε στον browser για τις επόμενες φορές
     const artCache = {};
+    let artSaved = {};
+    try { artSaved = JSON.parse(localStorage.getItem("art") || "{}"); } catch (e) {}
+    let artQueue = Promise.resolve();
+    let saveTimer = null;
+    function rememberArt(id, url) {
+      artSaved[id] = url;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => store("art", JSON.stringify(artSaved)), 1000);
+    }
     function fetchArt(trackId, big) {
-      const key = trackId + (big ? ":big" : "");
-      if (artCache[key]) return artCache[key];
-      return (artCache[key] = fetch("https://open.spotify.com/oembed?url=" +
-          encodeURIComponent("https://open.spotify.com/track/" + trackId))
-        .then(r => r.json())
-        .then(j => big ? (j.thumbnail_url || "").replace("ab67616d00001e02", "ab67616d0000b273") : (j.thumbnail_url || "")));
+      const up = u => big ? u.replace("ab67616d00001e02", "ab67616d0000b273") : u;
+      if (artSaved[trackId]) return Promise.resolve(up(artSaved[trackId]));
+      if (!artCache[trackId]) {
+        artCache[trackId] = artQueue = artQueue.then(() =>
+          fetch("https://open.spotify.com/oembed?url=" +
+            encodeURIComponent("https://open.spotify.com/track/" + trackId))
+            .then(r => r.ok ? r.json() : {})
+            .then(j => { const u = j.thumbnail_url || ""; if (u) rememberArt(trackId, u); return u; })
+            .catch(() => "")
+            .then(u => new Promise(res => setTimeout(() => res(u), 150))));
+      }
+      return artCache[trackId].then(up);
     }
 
     const artObserver = new IntersectionObserver(entries => {
@@ -121,7 +138,7 @@
           if (src) { img.onload = () => img.classList.add("in"); img.src = src; }
         }).catch(() => {});
       }
-    }, { root: plNav, rootMargin: "300px" });
+    }, { root: plNav, rootMargin: "100px" });
 
     /* ---------- Βιβλιοθήκη (αριστερά) ---------- */
     function renderPlaylists() {

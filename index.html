@@ -34,14 +34,22 @@
         <div id="tracks" class="tracks"><div class="skeleton"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
       </section>
 
-      <section class="panel player-panel" aria-label="Αναπαραγωγή">
-        <div class="controls">
-          <div id="now" class="now">Παίζει: <b>όλη η λίστα</b></div>
-          <button id="playAll" class="icon-btn play" type="button" aria-label="Παίξε όλη τη λίστα"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M240,128a15.74,15.74,0,0,1-7.6,13.51L88.32,229.65a16,16,0,0,1-16.2.3A15.86,15.86,0,0,1,64,216.13V39.87a15.86,15.86,0,0,1,8.12-13.82,16,16,0,0,1,16.2.3L232.4,114.49A15.74,15.74,0,0,1,240,128Z"/></svg><span class="tip">Όλη η λίστα</span></button>
-          <button id="repeat" class="icon-btn repeat" type="button" aria-label="Επανάληψη"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M24,128A72.08,72.08,0,0,1,96,56H204.69L194.34,45.66a8,8,0,0,1,11.32-11.32l24,24a8,8,0,0,1,0,11.32l-24,24a8,8,0,0,1-11.32-11.32L204.69,72H96a56.06,56.06,0,0,0-56,56,8,8,0,0,1-16,0Zm200-8a8,8,0,0,0-8,8,56.06,56.06,0,0,1-56,56H51.31l10.35-10.34a8,8,0,0,0-11.32-11.32l-24,24a8,8,0,0,0,0,11.32l24,24a8,8,0,0,0,11.32-11.32L51.31,200H160a72.08,72.08,0,0,0,72-72A8,8,0,0,0,224,120Z"/><path class="once" d="M140,104v48a8,8,0,0,1-16,0V118.94l-4.42,2.22a8,8,0,0,1-7.16-14.32l16-8A8,8,0,0,1,140,104Z"/></svg><span class="tip" id="repeatTip">Επανάληψη λίστας</span></button>
-        </div>
-        <div class="embed-container">
-          <div id="player"></div>
+      <section class="panel player-panel" aria-label="Τώρα παίζει">
+        <div class="backdrop" id="backdrop" aria-hidden="true"></div>
+        <div class="now-wrap">
+          <div class="art-frame"><img id="art" class="art" alt="" width="640" height="640"></div>
+          <div class="meta">
+            <div class="eyebrow" id="eyebrow">Τώρα παίζει</div>
+            <h1 id="nowTitle" class="now-title">Music 10K</h1>
+            <p id="nowSub" class="now-sub">Όλη η λίστα</p>
+          </div>
+          <div class="controls">
+            <button id="playAll" class="icon-btn play" type="button" aria-label="Παίξε όλη τη λίστα"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M240,128a15.74,15.74,0,0,1-7.6,13.51L88.32,229.65a16,16,0,0,1-16.2.3A15.86,15.86,0,0,1,64,216.13V39.87a15.86,15.86,0,0,1,8.12-13.82,16,16,0,0,1,16.2.3L232.4,114.49A15.74,15.74,0,0,1,240,128Z"/></svg><span class="tip">Όλη η λίστα</span></button>
+            <button id="repeat" class="icon-btn repeat" type="button" aria-label="Επανάληψη"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M24,128A72.08,72.08,0,0,1,96,56H204.69L194.34,45.66a8,8,0,0,1,11.32-11.32l24,24a8,8,0,0,1,0,11.32l-24,24a8,8,0,0,1-11.32-11.32L204.69,72H96a56.06,56.06,0,0,0-56,56,8,8,0,0,1-16,0Zm200-8a8,8,0,0,0-8,8,56.06,56.06,0,0,1-56,56H51.31l10.35-10.34a8,8,0,0,0-11.32-11.32l-24,24a8,8,0,0,0,0,11.32l24,24a8,8,0,0,0,11.32-11.32L51.31,200H160a72.08,72.08,0,0,0,72-72A8,8,0,0,0,224,120Z"/><path class="once" d="M140,104v48a8,8,0,0,1-16,0V118.94l-4.42,2.22a8,8,0,0,1-7.16-14.32l16-8A8,8,0,0,1,140,104Z"/></svg><span class="tip" id="repeatTip">Επανάληψη λίστας</span></button>
+          </div>
+          <div class="embed-container">
+            <div id="player"></div>
+          </div>
         </div>
       </section>
     </main>
@@ -56,7 +64,7 @@
     let current = { uri: MAIN_URI, title: null };
 
     const $ = id => document.getElementById(id);
-    const q = $("q"), list = $("tracks"), nowEl = $("now");
+    const q = $("q"), list = $("tracks");
     const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
     const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
@@ -114,12 +122,37 @@
     });
 
     /* ---------- Αναπαραγωγή ---------- */
+    // Εξώφυλλο και τίτλος από το oEmbed του Spotify
+    const artCache = {};
+    async function fetchArt(uri) {
+      if (artCache[uri]) return artCache[uri];
+      const [, type, id] = uri.split(":");
+      const r = await fetch("https://open.spotify.com/oembed?url=" +
+        encodeURIComponent("https://open.spotify.com/" + type + "/" + id));
+      const j = await r.json();
+      // μεγαλύτερη έκδοση της εικόνας (640px) όταν υπάρχει
+      const img = (j.thumbnail_url || "").replace("ab67616d00001e02", "ab67616d0000b273");
+      return (artCache[uri] = { img, title: j.title });
+    }
+
     function setNow() {
-      nowEl.innerHTML = current.title
-        ? "Παίζει: <b>" + esc(current.title) + "</b>"
-        : "Παίζει: <b>όλη η λίστα</b>";
+      const t = current.uri.startsWith("spotify:track:")
+        ? TRACKS.find(x => "spotify:track:" + x.id === current.uri) : null;
+      $("eyebrow").textContent = t ? "Τώρα παίζει" : "Συνεχής αναπαραγωγή";
+      $("nowTitle").textContent = t ? t.title : "Music 10K";
+      $("nowSub").textContent = t ? t.artists
+        : (TRACKS.length ? TRACKS.length.toLocaleString("el-GR") + " τραγούδια, ελληνικό rap και trap" : "Όλη η λίστα");
       list.querySelectorAll(".track").forEach(b =>
         b.classList.toggle("playing", "spotify:track:" + b.dataset.id === current.uri));
+      const uri = current.uri;
+      fetchArt(uri).then(a => {
+        if (uri !== current.uri || !a.img) return;
+        const art = $("art");
+        art.classList.remove("in");
+        art.onload = () => art.classList.add("in");
+        art.src = a.img;
+        $("backdrop").style.backgroundImage = "url(" + a.img + ")";
+      }).catch(() => {});
     }
 
     function load(uri, title) {
@@ -216,13 +249,14 @@
         q.placeholder = "Αναζήτηση σε " + TRACKS.length.toLocaleString("el-GR") + " τραγούδια";
         document.addEventListener("keydown", e => { if (e.key === "/" && document.activeElement !== q) { e.preventDefault(); q.focus(); } });
         renderList();
+        setNow();
       })
       .catch(() => { list.innerHTML = '<div class="empty">Η λίστα δεν φόρτωσε. Ανανέωσε τη σελίδα.</div>'; });
 
     window.onSpotifyIframeApiReady = IFrameAPI => {
       IFrameAPI.createController(
         $("player"),
-        { uri: MAIN_URI, width: "100%", height: "100%" },
+        { uri: MAIN_URI, width: "100%", height: 152 },
         c => { controller = c; c.addListener("playback_update", onPlayback); }
       );
     };

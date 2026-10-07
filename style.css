@@ -545,3 +545,17 @@ button { font: inherit; color: inherit; }
     .art { height: 100%; width: auto; }
     .embed-container { height: 152px; }
 }
+
+/* ---------- Ουρά: shuffle / prev / next ---------- */
+.icon-btn.toggle.on { color: var(--accent); }
+.icon-btn.toggle.on::after {
+    content: "";
+    position: absolute;
+    bottom: 3px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: currentColor;
+}
+.controls { gap: 2px; }
+.controls #prev svg, .controls #next svg { width: 16px; height: 16px; }

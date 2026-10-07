@@ -261,3 +261,49 @@ button { font: inherit; color: inherit; }
     .embed-container { flex: none; height: 380px; }
     .panel.library { max-height: 70vh; }
 }
+
+/* ---------- Icon buttons (play / repeat) ---------- */
+.icon-btn {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    display: inline-grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+}
+.icon-btn svg { width: 16px; height: 16px; fill: currentColor; }
+.icon-btn.play { background: var(--green); color: #000; }
+.icon-btn.play:hover { background: var(--green-hi); transform: scale(1.05); }
+.icon-btn.repeat { color: var(--green); }
+.icon-btn.repeat:hover { color: var(--green-hi); }
+.icon-btn.repeat::after {           /* μικρή τελεία κάτω, όπως στο Spotify */
+    content: "";
+    position: absolute;
+    bottom: 1px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: currentColor;
+}
+.icon-btn svg.stroke { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; width: 18px; height: 18px; }
+.icon-btn .badge {
+    display: none;
+    position: absolute;
+    top: 1px;
+    right: 0;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--green);
+    color: #000;
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 13px;
+    text-align: center;
+}
+.icon-btn.repeat.one .badge { display: block; }
+.icon-btn.repeat.one svg { opacity: 1; }

@@ -414,3 +414,134 @@ button { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- 3 στήλες: βιβλιοθήκη / τραγούδια / τώρα παίζει ---------- */
+.layout { grid-template-columns: 280px minmax(320px, 1fr) minmax(340px, 1.1fr); }
+
+.side-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 20px 20px 10px;
+}
+.side-head h2 { margin: 0; font-size: 15px; font-weight: 600; }
+
+.side-filter { padding: 0 12px 10px; border-bottom: 1px solid var(--line); }
+.side-filter input {
+    width: 100%;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    background: var(--surface-2);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    outline: 0;
+}
+.side-filter input:focus { border-color: rgba(255, 255, 255, 0.22); }
+
+.playlists {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: #333 transparent;
+}
+
+.pl {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 6px;
+    border: 0;
+    border-radius: var(--r-sm);
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    transition: background 160ms var(--ease);
+}
+.pl:hover { background: var(--hover); }
+.pl.active { background: var(--surface-2); }
+.pl.active .pl-name { color: var(--accent); }
+
+.pl-art {
+    width: 44px;
+    height: 44px;
+    border-radius: 4px;
+    background: var(--surface-2);
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+}
+.pl-art img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 300ms var(--ease); }
+.pl-art img.in { opacity: 1; }
+.pl-art.all { background: linear-gradient(135deg, #2b5f45, #1b1c1c); }
+.pl-art.all svg { width: 18px; height: 18px; fill: var(--text); }
+
+.pl-text { min-width: 0; }
+.pl-name, .pl-sub { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl-name { font-size: 14px; font-weight: 500; }
+.pl-sub { margin-top: 2px; font-size: 12px; color: var(--sub); }
+
+.library-head { align-items: center; }
+.lh-text { min-width: 0; display: flex; align-items: baseline; gap: 10px; }
+.lh-text h2 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.icon-btn.play.small { width: 34px; height: 34px; flex-shrink: 0; }
+.icon-btn.play.small svg { width: 12px; height: 12px; }
+
+.track { grid-template-columns: 36px 1fr auto; }
+.t-main { min-width: 0; }
+.t-in {
+    margin-left: 10px;
+    max-width: 120px;
+    font-size: 12px;
+    color: var(--faint);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.now-wrap { padding: clamp(16px, 3vh, 36px) 24px 24px; }
+
+.mobile-tabs { display: none; }
+
+@media (max-width: 1180px) {
+    .layout { grid-template-columns: 240px 1fr 1fr; }
+}
+
+@media (max-width: 960px) {
+    body { overflow: hidden; height: 100dvh; min-height: 0; }
+    .shell { padding: 12px 12px 0; gap: 12px; }
+    .layout { display: block; position: relative; }
+    .layout > .panel { position: absolute; inset: 0; display: none; max-height: none; }
+    body[data-view="sidebar"] .sidebar,
+    body[data-view="library"] .library,
+    body[data-view="player-panel"] .player-panel { display: flex; }
+    .mobile-tabs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        border-top: 1px solid var(--line);
+        margin: 0 -12px;
+        background: var(--surface);
+    }
+    .mobile-tabs button {
+        height: 52px;
+        border: 0;
+        background: transparent;
+        color: var(--sub);
+        font-size: 13px;
+        font-weight: 500;
+    }
+    .mobile-tabs button.active { color: var(--text); }
+    .now-wrap {
+        grid-template-columns: 1fr auto;
+        grid-template-rows: minmax(0, 1fr) auto auto;
+        grid-template-areas: "art art" "meta controls" "embed embed";
+        padding: 20px 16px;
+    }
+    .art { height: 100%; width: auto; }
+    .embed-container { height: 152px; }
+}

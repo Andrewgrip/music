@@ -10,6 +10,7 @@
   <div class="search-bar">
     <input id="q" type="search" placeholder="Αναζήτηση τραγουδιού ή καλλιτέχνη..." autocomplete="off">
     <button id="spotifySearch" class="primary" type="button">Αναζήτηση στο Spotify</button>
+    <button id="repeat" type="button">🔁 Επανάληψη: Όλη η λίστα</button>
     <div id="results" class="results"></div>
   </div>
 
@@ -33,31 +34,63 @@
     const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
     const escapeHtml = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-    // Επανάληψη: όταν τελειώσει ό,τι παίζει, ξεκινά ξανά όλη η λίστα
     const MAIN_URI = "spotify:playlist:4NTuH5mnRYIe4Yv4YmN6Lg"; // Music 10K
-    const repeatMode = 1;
+
+    // Επανάληψη: "all" = όταν τελειώσει η λίστα ξεκινά από την αρχή,
+    //            "one" = το τραγούδι που παίζει ξαναπαίζει από την αρχή
+    let repeatMode = "all";
+    try { if (localStorage.getItem("repeatMode") === "one") repeatMode = "one"; } catch (e) {}
+    const repeatBtn = document.getElementById("repeat");
+    function updateRepeat() {
+      repeatBtn.textContent = repeatMode === "one" ? "🔂 Επανάληψη: Αυτό το τραγούδι" : "🔁 Επανάληψη: Όλη η λίστα";
+      repeatBtn.classList.toggle("on", repeatMode === "one");
+    }
+    updateRepeat();
+    repeatBtn.addEventListener("click", () => {
+      repeatMode = repeatMode === "one" ? "all" : "one";
+      try { localStorage.setItem("repeatMode", repeatMode); } catch (e) {}
+      updateRepeat();
+    });
 
     let currentUri = MAIN_URI;
-    let playingUri = null;   // το τραγούδι που παίζει (αν το δίνει ο player)
     let wasPlaying = false;
     let restarting = false;
+    let seekedBack = false;
     let lastPos = 0, lastDur = 0;
 
     function onPlayback(e) {
       const d = e.data || {};
-      if (d.playingURI) playingUri = d.playingURI;
-      const atEnd = d.duration > 0 && d.position >= d.duration - 1500;
+      const pos = d.position || 0, dur = d.duration || 0;
+
+      // Ένα τραγούδι: λίγο πριν τελειώσει, γύρνα στην αρχή του
+      if (repeatMode === "one" && !d.isPaused && dur > 0) {
+        if (!seekedBack && dur - pos < 1500) {
+          seekedBack = true;
+          controller.seek(0);
+        } else if (pos < 5000) {
+          seekedBack = false;
+        }
+      }
+
+      // Όλη η λίστα (ή ένα τραγούδι αν ο player πρόλαβε να σταματήσει):
+      // όταν σταματήσει στο τέλος, ξεκίνα ξανά
+      const atEnd = dur > 0 && pos >= dur - 1500;
       const wasNearEnd = lastDur > 0 && lastPos >= lastDur - 2500;
-      const ended = wasPlaying && d.isPaused && !d.isBuffering && (atEnd || (d.position === 0 && wasNearEnd));
+      const ended = wasPlaying && d.isPaused && !d.isBuffering && (atEnd || (pos === 0 && wasNearEnd));
       if (!d.isPaused) wasPlaying = true;
-      lastPos = d.position || 0;
-      lastDur = d.duration || 0;
-      if (!ended || restarting || repeatMode === 0) return;
+      lastPos = pos;
+      lastDur = dur;
+      if (!ended || restarting) return;
       wasPlaying = false;
       restarting = true;
-      currentUri = MAIN_URI;
-      controller.loadUri(MAIN_URI);
-      setTimeout(() => { controller.play(); restarting = false; }, 800);
+      if (repeatMode === "one") {
+        controller.seek(0);
+        setTimeout(() => { controller.resume(); restarting = false; }, 500);
+      } else {
+        currentUri = MAIN_URI;
+        controller.loadUri(MAIN_URI);
+        setTimeout(() => { controller.play(); restarting = false; }, 800);
+      }
     }
 
     function load(uri) {

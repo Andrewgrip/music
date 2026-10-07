@@ -10,112 +10,87 @@
   <div class="search-bar">
     <input id="q" type="search" placeholder="Αναζήτηση τραγουδιού ή καλλιτέχνη..." autocomplete="off">
     <button id="spotifySearch" class="primary" type="button">Αναζήτηση στο Spotify</button>
-    <button id="backToPlaylist" type="button">Όλη η playlist</button>
     <div id="results" class="results"></div>
   </div>
+
+  <div id="tabs" class="tabs"></div>
 
   <div class="embed-container">
     <div id="player"></div>
   </div>
 
   <script>
-    const PLAYLIST = "spotify:playlist:0ZfeJ66fKPdTgQf5XbXOTf";
+    // Οι playlists και τα τραγούδια τους φορτώνονται από το tracks.json
+    // Μορφή: { playlists: [{id, name}], tracks: [[trackId, τίτλος, καλλιτέχνες, [δείκτες playlists]]] }
+    const START_PLAYLIST = 0;     // με ποια playlist ανοίγει η σελίδα (θέση στο tracks.json)
+    const MAX_RESULTS = 50;
 
-    // Τραγούδια της playlist "My favorite" (id, τίτλος, καλλιτέχνες)
-    const TRACKS = [
-      ["0nNlBtm1vuo9vlU9PYYuc5","MOTORA","Bres, Verde"],
-      ["3lS1r65AbkPdljhDrRQEyV","Aeroplana","Bloody Hawk, TOQUEL"],
-      ["7ksYGZqdZbhG6eGqsGDJZo","DIEFTHINTIS","DAIMA, Stanley"],
-      ["5yaBUyYf6ZRn3SngG0qyBu","TAKEOVER","SKEZ, Trannos, Stanley"],
-      ["2dQPn58w0GHZFSc3OKHTFC","No Mercy","Trannos"],
-      ["0eS4UksBnRsMsS3eRH1ALh","RP","SKEZ, Ank Beats"],
-      ["6W9YoPMsH55eDMB5gafvZb","Poios Eimai","Light"],
-      ["0RVZgyIzq2mg3dboVj6up9","BOGOTA","Ivan Greko"],
-      ["27YR9PvR67oRBOquAXS87Y","AMA SARESW","Strat, Arab, BeTaf Beats"],
-      ["3xOu9xqZ0I6oJkva8r0S2j","MARRAKESH","HermesHermes, Tr4cer"],
-      ["3EVb3AIWxJYvgmxCf7luWF","OPAP FREESTYLE","Arab, BeTaf Beats"],
-      ["5IEfvd0RtX7WITYPiM2cN4","Rabanne","FLY LO, Strat"],
-      ["676OyMHIOfootgShTPbJgC","LETE LETE","SNIK, Trannos, Fy"],
-      ["3klqwu80XOZBszq7TS214C","AGAINST ALL","Trannos, SKEZ, HermesHermes, LOSHA"],
-      ["5sIbK6Qd4SYjgmI903X9r5","CLS","DRACO"],
-      ["7utCywQkIX7CztLdSbShJp","ALCANTARA","HermesHermes, Kidd, BLVD"],
-      ["3E65jZP7aoEUhyKrKFEdHi","K9","Ivan Greko, HermesHermes, LK"],
-      ["1nMUQpB8QRueb9aHPuSHmr","SMACKDOWN","Ivan Greko, Sanko"],
-      ["4VDkRSQlaSFYij6xfspoLj","WW3","Trannos"],
-      ["6AICejWzqrCsNSi6vBabb5","CHANEL","Trannos, SNIK, CHEKKIS"],
-      ["6D5QFkJLHYuv5f7hvslZxz","MA BELLA","RACK, TOQUEL, Beyond"],
-      ["7nWCBmf2cLyMzXQTnYgSvr","PERCO","Ivan Greko, Arab, BeTaf Beats"],
-      ["7Ku2O5h0e3NH1qGcuZvGWT","CHOCO FRESH","HermesHermes, Ivan Greko, Arab"],
-      ["2SHilkCqqDWFVnPh2U8btz","GOAL","Light, Block 93"],
-      ["11dvIukD3Xmk1WbDuisL82","MONCLER","Ivan Greko, Arab, BLVD, ASOK"],
-      ["1rHSPCWFHneNv8JUn5EzDz","Kalokairi","Trannos"],
-      ["77VGUR3e39LMnXDbRTEmIB","BRO X3","Light, DAIMA, Arab"],
-      ["6R2utRyFhiEBnyz6afQ9Pe","ILEGAL","TOQUEL, FLY LO, Beyond"],
-      ["7r0sYhhoM4hjeuCDlbCobZ","DOLCE GABBANA","TOQUEL, FLY LO, Beyond"],
-      ["13Z7q7uTvkAK3qPN2jkDls","24hrs","Light, Trannos"],
-      ["0TkxsUxBTNV8r1R2tOFumj","Book of ra","Arab, ASOK, 1Κ Chainz"],
-      ["5BpN9zp9wzg0Tem1n5W3kR","Only The Fam","Block 93, Sp93, Tanto, mi368"],
-      ["6HmFlBFT4ZvWuDP1otLqSg","AMG","Trannos, ATC Nico, Lil Riico"],
-      ["1VuKTIwRSERLp4Y1kghzpl","Ibiza","Trannos"],
-      ["1ob6WCVuZIO5qk7jiRrHjn","Tropicana","Trannos"],
-      ["3C4vDKPYaUpG0ZH8y4axeV","GIMMIE","Ivan Greko, BeTaf Beats"],
-      ["5sevJDfYQG35a414MpthiM","TAMAM","RACK, Sin Laurent"],
-      ["1f8q0UF64hUKlEezIzIc4N","GRISELDA","RACK, VIDO, Sin Laurent"],
-      ["6BbY1PRIpGi8jxyzmrSibV","BLACK PHONE MAFIA","Ivan Greko, Strat, Arab, DIFF, BeTaf Beats, Sanko"],
-      ["7melDBnvzx5TU4yxOgT1MF","GOAL","Arab, BeTaf Beats"],
-      ["6P9P1j0v2KiDu4vxW3T1WS","GUZMAN","Ivan Greko, Arab, Sanko"],
-      ["2G7lPxGsVuwaO8uzQmw1BL","PISSA","Ivan Greko, Arab, BeTaf Beats, DIFF, ASOK"],
-      ["2wTyM2gmuk3MdXVPDLNdmE","CZ","Ivan Greko, Arab, BeTaf Beats, Saxpas"],
-      ["2nagfvFWn2rdPsmWcmmHcs","Crystal","FLY LO, Mike G"],
-      ["14JWdvYsWAx7csssKvakQK","SILLY BOY","Ivan Greko, Trannos, BeTaf Beats"],
-      ["7LayhRPJMFiJv2oiOHxlmH","Adam & Eve","Light, Noizy"],
-      ["5XM5BN2S3HLTaK4wvC7RZe","KLEIDIA","SNIK, Trannos"],
-      ["7h1NvRW2thbYlh0esXXORO","Baila","Light, Arab"],
-      ["0upFohXrGxIIAjyaJmCkMU","Tokyo Drift (Fast & Furious)","Teriyaki Boyz"],
-      ["0f7gbjwkZOs9loj2fr0lGH","There It Go (The Whistle Song)","Juelz Santana"],
-      ["2O6rvtuZnW3yCa1ASbTk6g","SEADOO","Arab, Lami"],
-      ["2ZRo7axmMPeSVUvDbGkJah","Hope","XXXTENTACION"],
-      ["6ifNuuYjiS5NdMabN4Jvrs","Six Days - Remix","DJ Shadow, Mos Def"]
-    ];
+    let PLAYLISTS = [];
+    let TRACKS = [];
+    let controller = null;
+    let active = -1;
+    let current = START_PLAYLIST;
 
     const q = document.getElementById("q");
     const results = document.getElementById("results");
-    let controller = null;
-    let active = -1;
+    const tabs = document.getElementById("tabs");
 
-    // Αφαιρεί τόνους/κεφαλαία ώστε η αναζήτηση να βρίσκει πιο εύκολα
     const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-
-    function escapeHtml(s) {
-      return s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-    }
+    const escapeHtml = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
     function load(uri) {
       if (controller) {
         controller.loadUri(uri);
         controller.play();
       } else {
+        const iframe = document.querySelector(".embed-container iframe");
         const [, type, id] = uri.split(":");
-        document.querySelector(".embed-container iframe").src =
-          "https://open.spotify.com/embed/" + type + "/" + id;
+        if (iframe) iframe.src = "https://open.spotify.com/embed/" + type + "/" + id;
       }
     }
+
+    function showPlaylist(i) {
+      current = i;
+      [...tabs.children].forEach((b, k) => b.classList.toggle("active", k === i));
+      load("spotify:playlist:" + PLAYLISTS[i].id);
+    }
+
+    function renderTabs() {
+      tabs.innerHTML = PLAYLISTS.map((p, i) =>
+        '<button type="button" data-i="' + i + '">' + escapeHtml(p.name) + "</button>").join("");
+      tabs.children[current]?.classList.add("active");
+    }
+
+    tabs.addEventListener("click", e => {
+      const b = e.target.closest("button");
+      if (b) showPlaylist(+b.dataset.i);
+    });
 
     function render() {
       const term = norm(q.value.trim());
       active = -1;
       if (!term) { results.classList.remove("open"); results.innerHTML = ""; return; }
-      const found = TRACKS.filter(t => norm(t[1] + " " + t[2]).includes(term));
+      const words = term.split(/\s+/);
+      const found = [];
+      for (const t of TRACKS) {
+        if (words.every(w => t.search.includes(w))) {
+          found.push(t);
+          if (found.length >= MAX_RESULTS) break;
+        }
+      }
       results.innerHTML = found.length
         ? found.map(t =>
-            '<button type="button" data-id="' + t[0] + '">' + escapeHtml(t[1]) +
-            '<span class="artist">' + escapeHtml(t[2]) + "</span></button>").join("")
-        : '<div class="empty">Δεν βρέθηκε στην playlist. Πατήστε «Αναζήτηση στο Spotify».</div>';
+            '<button type="button" data-id="' + t.id + '"><span class="text">' + escapeHtml(t.title) +
+            '<span class="artist">' + escapeHtml(t.artists) +
+            ' · <span class="in">' + escapeHtml(t.lists.map(i => PLAYLISTS[i].name).join(", ")) +
+            "</span></span></span></button>").join("")
+        : '<div class="empty">Δεν βρέθηκε. Πατήστε «Αναζήτηση στο Spotify».</div>';
       results.classList.add("open");
     }
 
     function pick(id) {
       load("spotify:track:" + id);
+      [...tabs.children].forEach(b => b.classList.remove("active"));
       results.classList.remove("open");
     }
 
@@ -151,26 +126,31 @@
 
     document.getElementById("spotifySearch").addEventListener("click", () => {
       const term = q.value.trim();
-      const url = "https://open.spotify.com/search" + (term ? "/" + encodeURIComponent(term) : "");
-      window.open(url, "_blank", "noopener");
+      window.open("https://open.spotify.com/search" + (term ? "/" + encodeURIComponent(term) : ""), "_blank", "noopener");
     });
 
-    document.getElementById("backToPlaylist").addEventListener("click", () => {
-      q.value = "";
-      results.classList.remove("open");
-      load(PLAYLIST);
-    });
+    // Φόρτωση δεδομένων
+    fetch("tracks.json")
+      .then(r => r.json())
+      .then(data => {
+        PLAYLISTS = data.playlists;
+        TRACKS = data.tracks.map(([id, title, artists, lists]) =>
+          ({ id, title, artists, lists, search: norm(title + " " + artists) }));
+        renderTabs();
+        q.placeholder = "Αναζήτηση σε " + TRACKS.length.toLocaleString("el-GR") + " τραγούδια...";
+      })
+      .catch(() => { q.placeholder = "Η λίστα αναζήτησης δεν φόρτωσε"; });
 
-    // Spotify iFrame API: επιτρέπει αλλαγή τραγουδιού και αυτόματο play
+    // Spotify iFrame API
     window.onSpotifyIframeApiReady = IFrameAPI => {
       IFrameAPI.createController(
         document.getElementById("player"),
-        { uri: PLAYLIST, width: "100%", height: "100%" },
+        { uri: "spotify:playlist:0ZfeJ66fKPdTgQf5XbXOTf", width: "100%", height: "100%" },
         c => { controller = c; }
       );
     };
 
-    // Αν δεν φορτώσει το API, βάζουμε απλό iframe
+    // Αν δεν φορτώσει το API, απλό iframe
     setTimeout(() => {
       if (!controller && !document.querySelector(".embed-container iframe")) {
         document.getElementById("player").outerHTML =

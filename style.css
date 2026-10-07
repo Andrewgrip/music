@@ -87,6 +87,32 @@ body {
     font-size: 15px;
 }
 
+.results button {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.results img {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.results .section {
+    padding: 10px 16px 6px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #1db954;
+    background: #181818;
+    position: sticky;
+    top: 0;
+}
+
 .results button:hover,
 .results button.active { background: #2c2c2c; }
 .results .artist { display: block; font-size: 13px; color: #b3b3b3; margin-top: 2px; }
@@ -107,3 +133,28 @@ body {
     height: 100%;
     border: none;
 }
+
+/* Playlist buttons */
+.tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.tabs button {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    background: #2a2a2a;
+    border: 1px solid #3a3a3a;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.tabs button:hover { background: #333; }
+.tabs button.active { background: #fff; color: #000; border-color: #fff; }
+
+.results .in { color: #1db954; }

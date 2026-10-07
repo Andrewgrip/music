@@ -4,38 +4,48 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Music</title>
+  <meta name="description" content="Ελληνικό rap και trap: αναζήτηση και αναπαραγωγή από τη λίστα Music 10K.">
+  <meta name="theme-color" content="#0c0d0d">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='56' fill='%230c0d0d'/%3E%3Cpath fill='%233cc47c' d='M196 40 84 68v98a30 30 0 1 0 14 26v-80l84-21v44a30 30 0 1 0 14 26z'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="topbar">
-    <div class="logo"><span class="dot">♫</span>Music</div>
-    <label class="search">
-      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 0 1 5.92 12.1l4.24 4.24-1.42 1.42-4.24-4.24A7.5 7.5 0 1 1 10.5 3zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11z"/></svg>
-      <input id="q" type="search" placeholder="Τι θέλεις να ακούσεις;" autocomplete="off">
-    </label>
-    <button id="spotifySearch" class="pill" type="button">Ψάξε στο Spotify</button>
-  </header>
+  <a class="skip" href="#q">Μετάβαση στην αναζήτηση</a>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M212.92,25.69a8,8,0,0,0-6.86-1.45l-128,32A8,8,0,0,0,72,64V174.08A36,36,0,1,0,88,204V118.25l112-28v51.83A36,36,0,1,0,216,172V32A8,8,0,0,0,212.92,25.69Z"/></svg>Music</div>
+      <label class="search">
+        <svg viewBox="0 0 256 256" aria-hidden="true"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg>
+        <input id="q" type="search" placeholder="Αναζήτηση τραγουδιού ή καλλιτέχνη" autocomplete="off" aria-label="Αναζήτηση">
+        <kbd>/</kbd>
+      </label>
+      <button id="spotifySearch" class="link" type="button">Αναζήτηση στο Spotify <svg viewBox="0 0 256 256" aria-hidden="true"><path d="M224,104a8,8,0,0,1-16,0V59.32l-66.33,66.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z"/></svg></button>
+    </header>
 
-  <main class="layout">
-    <section class="panel library">
-      <div class="library-head">
-        <h2 id="listTitle">Όλα τα τραγούδια</h2>
-        <span id="count" class="count"></span>
-      </div>
-      <div id="tracks" class="tracks"><div class="empty">Φόρτωση...</div></div>
-    </section>
+    <main class="layout">
+      <section class="panel library" aria-label="Τραγούδια">
+        <div class="library-head">
+          <h2 id="listTitle">Όλα τα τραγούδια</h2>
+          <span id="count" class="count"></span>
+        </div>
+        <div id="tracks" class="tracks"><div class="skeleton"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+      </section>
 
-    <section class="panel player-panel">
-      <div class="controls">
-        <div id="now" class="now">Παίζει: <b>όλη η λίστα</b></div>
-        <button id="playAll" class="icon-btn play" type="button" title="Παίξε όλη τη λίστα" aria-label="Παίξε όλη τη λίστα"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.7v12.6c0 .6.6.9 1.1.6l10.2-6.3a.7.7 0 0 0 0-1.2L4.1 1.1C3.6.8 3 1.1 3 1.7z"/></svg></button>
-        <button id="repeat" class="icon-btn repeat" type="button" aria-label="Επανάληψη"><svg class="stroke" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/></svg><span class="badge">1</span></button>
-      </div>
-      <div class="embed-container">
-        <div id="player"></div>
-      </div>
-    </section>
-  </main>
+      <section class="panel player-panel" aria-label="Αναπαραγωγή">
+        <div class="controls">
+          <div id="now" class="now">Παίζει: <b>όλη η λίστα</b></div>
+          <button id="playAll" class="icon-btn play" type="button" aria-label="Παίξε όλη τη λίστα"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M240,128a15.74,15.74,0,0,1-7.6,13.51L88.32,229.65a16,16,0,0,1-16.2.3A15.86,15.86,0,0,1,64,216.13V39.87a15.86,15.86,0,0,1,8.12-13.82,16,16,0,0,1,16.2.3L232.4,114.49A15.74,15.74,0,0,1,240,128Z"/></svg><span class="tip">Όλη η λίστα</span></button>
+          <button id="repeat" class="icon-btn repeat" type="button" aria-label="Επανάληψη"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M24,128A72.08,72.08,0,0,1,96,56H204.69L194.34,45.66a8,8,0,0,1,11.32-11.32l24,24a8,8,0,0,1,0,11.32l-24,24a8,8,0,0,1-11.32-11.32L204.69,72H96a56.06,56.06,0,0,0-56,56,8,8,0,0,1-16,0Zm200-8a8,8,0,0,0-8,8,56.06,56.06,0,0,1-56,56H51.31l10.35-10.34a8,8,0,0,0-11.32-11.32l-24,24a8,8,0,0,0,0,11.32l24,24a8,8,0,0,0,11.32-11.32L51.31,200H160a72.08,72.08,0,0,0,72-72A8,8,0,0,0,224,120Z"/><path class="once" d="M140,104v48a8,8,0,0,1-16,0V118.94l-4.42,2.22a8,8,0,0,1-7.16-14.32l16-8A8,8,0,0,1,140,104Z"/></svg><span class="tip" id="repeatTip">Επανάληψη λίστας</span></button>
+        </div>
+        <div class="embed-container">
+          <div id="player"></div>
+        </div>
+      </section>
+    </main>
+  </div>
 
   <script>
     const MAIN_URI = "spotify:playlist:4NTuH5mnRYIe4Yv4YmN6Lg"; // Music 10K
@@ -62,15 +72,15 @@
       $("count").textContent = shown.length.toLocaleString("el-GR") + " τραγούδια";
       kb = -1;
       if (!shown.length) {
-        list.innerHTML = '<div class="empty">Δεν βρέθηκε στη λίστα σου.<br>Πάτα «Ψάξε στο Spotify» για να το βρεις εκεί.</div>';
+        list.innerHTML = '<div class="empty">Δεν υπάρχει στη λίστα. Δοκίμασε «Αναζήτηση στο Spotify» πάνω δεξιά.</div>';
         return;
       }
       const playingId = current.uri.startsWith("spotify:track:") ? current.uri.slice(14) : null;
       list.innerHTML = shown.slice(0, MAX_SHOWN).map((t, i) =>
-        '<button class="track' + (t.id === playingId ? " playing" : "") + '" type="button" data-id="' + t.id + '">' +
+        '<button class="track' + (t.id === playingId ? " playing" : "") + '" type="button" style="--i:' + Math.min(i, 24) + '" data-id="' + t.id + '">' +
         '<span class="num">' + (i + 1) + '</span><span><span class="title">' + esc(t.title) +
         '</span><span class="artist">' + esc(t.artists) + "</span></span></button>").join("") +
-        (shown.length > MAX_SHOWN ? '<div class="empty">… και άλλα ' + (shown.length - MAX_SHOWN).toLocaleString("el-GR") + '. Γράψε κάτι στην αναζήτηση για να τα βρεις.</div>' : "");
+        (shown.length > MAX_SHOWN ? '<div class="empty">… και άλλα ' + (shown.length - MAX_SHOWN).toLocaleString("el-GR") + '. Γράψε στην αναζήτηση για να τα βρεις.</div>' : "");
       list.scrollTop = 0;
     }
 
@@ -141,9 +151,7 @@
     const repeatBtn = $("repeat");
     function updateRepeat() {
       repeatBtn.classList.toggle("one", repeatMode === "one");
-      repeatBtn.title = repeatMode === "one"
-        ? "Το τραγούδι ξαναπαίζει από την αρχή. Πάτα για επανάληψη όλης της λίστας."
-        : "Η λίστα ξεκινά πάλι όταν τελειώσει. Πάτα για επανάληψη ενός τραγουδιού.";
+      $("repeatTip").textContent = repeatMode === "one" ? "Επανάληψη τραγουδιού" : "Επανάληψη λίστας";
     }
     updateRepeat();
     repeatBtn.addEventListener("click", () => {
@@ -206,6 +214,7 @@
         TRACKS = data.tracks.map(([id, title, artists]) =>
           ({ id, title, artists, search: norm(title + " " + artists) }));
         q.placeholder = "Αναζήτηση σε " + TRACKS.length.toLocaleString("el-GR") + " τραγούδια";
+        document.addEventListener("keydown", e => { if (e.key === "/" && document.activeElement !== q) { e.preventDefault(); q.focus(); } });
         renderList();
       })
       .catch(() => { list.innerHTML = '<div class="empty">Η λίστα δεν φόρτωσε. Ανανέωσε τη σελίδα.</div>'; });
